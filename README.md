@@ -27,7 +27,7 @@ A RESTful Task Scheduler Service built in Go that manages HTTP tasks with persis
 1. Clone the repository:
 
 ```bash
-git clone <your-repo-url>
+git clone https://github.com/ayushsarode/task-scheduler.git
 cd task-scheduler
 ```
 
