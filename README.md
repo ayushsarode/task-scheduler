@@ -31,23 +31,16 @@ git clone <your-repo-url>
 cd task-scheduler
 ```
 
-2. Set up PostgreSQL database and update the `.env` file:
-
-```bash
-cp .env.example .env
-# Edit .env with your database configuration
-```
-
-3. Start the services:
+2. Start the services:
 
 ```bash
 cd deployments
 docker-compose up -d
 ```
 
-4. The API will be available at `http://localhost:8080`
+3. The API will be available at `http://localhost:8080`
 
-5. Check service health:
+4. Check service health:
 
 ```bash
 curl http://localhost:8080/health
@@ -103,14 +96,139 @@ http://localhost:8080
 
 - `GET /api/v1/results` - List all task results (with filtering)
 
-### 📚 Complete API Documentation
+### � **API Examples**
+
+#### Create a One-off Task
+
+Execute a webhook notification in 5 minutes:
+
+```bash
+curl -X POST http://localhost:8080/api/v1/tasks \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Order Confirmation Webhook",
+    "trigger": {
+      "type": "one-off",
+      "datetime": "2025-10-06T20:10:00Z"
+    },
+    "action": {
+      "method": "POST",
+      "url": "https://webhook.site/your-unique-endpoint",
+      "headers": {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer sk-webhook-token-123",
+        "X-Source": "task-scheduler"
+      },
+      "payload": {
+        "event": "order.confirmed",
+        "order_id": "ORD-2025-001",
+        "customer_email": "user@example.com",
+        "amount": 99.99,
+        "timestamp": "2025-10-06T20:10:00Z"
+      }
+    }
+  }'
+```
+
+#### Create a Recurring Task (Cron)
+
+Daily backup status check every morning at 9 AM:
+
+```bash
+curl -X POST http://localhost:8080/api/v1/tasks \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Daily Backup Health Check",
+    "trigger": {
+      "type": "cron",
+      "cron": "0 0 9 * * *"
+    },
+    "action": {
+      "method": "GET",
+      "url": "https://api.backupservice.com/v1/status",
+      "headers": {
+        "Authorization": "Bearer backup-api-key-456",
+        "User-Agent": "TaskScheduler/1.0",
+        "Accept": "application/json"
+      }
+    }
+  }'
+```
+
+#### Frequent Testing Task
+
+For testing - ping every 30 seconds:
+
+```bash
+curl -X POST http://localhost:8080/api/v1/tasks \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Quick Test Ping",
+    "trigger": {
+      "type": "cron",
+      "cron": "*/30 * * * * *"
+    },
+    "action": {
+      "method": "GET",
+      "url": "https://httpbin.org/get",
+      "headers": {
+        "User-Agent": "TaskScheduler-Test/1.0"
+      }
+    }
+  }'
+```
+
+#### List and Filter Tasks
+
+```bash
+# Get all scheduled tasks
+curl "http://localhost:8080/api/v1/tasks?status=scheduled&page=1&limit=10"
+
+# Get completed tasks
+curl "http://localhost:8080/api/v1/tasks?status=completed"
+
+# Search tasks by name
+curl "http://localhost:8080/api/v1/tasks?name=backup"
+```
+
+#### View Task Execution Results
+
+```bash
+# Get results for a specific task
+curl "http://localhost:8080/api/v1/tasks/{task-id}/results"
+
+# Get successful results only
+curl "http://localhost:8080/api/v1/results?success=true&page=1&limit=5"
+
+# Get recent failed executions
+curl "http://localhost:8080/api/v1/results?success=false&limit=10"
+```
+
+#### Update or Cancel Tasks
+
+```bash
+# Update a task (change schedule or action)
+curl -X PUT http://localhost:8080/api/v1/tasks/{task-id} \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Updated Task Name",
+    "trigger": {
+      "type": "cron",
+      "cron": "0 */30 * * * *"
+    }
+  }'
+
+# Cancel/Delete a task
+curl -X DELETE http://localhost:8080/api/v1/tasks/{task-id}
+```
+
+### �📚 Complete API Documentation
 
 #### Postman Collection
 
 - **File**: [`docs/postman_collection.json`](docs/postman_collection.json)
 - **Usage**: Import into Postman for interactive API testing
 - **Features**: Pre-configured requests, example payloads, response samples
-
 
 ## 🕒 **Task Timing Guide**
 
@@ -131,7 +249,6 @@ http://localhost:8080
 # Tomorrow 9 AM: 2025-10-03T09:00:00Z
 # Next week: 2025-10-09T11:46:00Z
 ```
-
 
 ### **Cron Tasks (Recurring)**
 
@@ -169,82 +286,12 @@ http://localhost:8080
 
 ### **🧪 Testing Tips**
 
-
 #### **For Cron Tasks**:
 
 ```bash
 # Use frequent patterns for testing
 "cron": "*/30 * * * * *"  # Every 30 seconds
 "cron": "0 * * * * *"     # Every minute
-```
-
-## Task Examples
-
-### Create a One-off Task
-
-```bash
-curl -X POST http://localhost:8080/api/v1/tasks \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "Send Webhook Notification",
-    "trigger": {
-      "type": "one-off",
-      "datetime": "2025-10-03T10:00:00Z"
-    },
-    "action": {
-      "method": "POST",
-      "url": "https://webhook.site/your-endpoint",
-      "headers": {
-        "Content-Type": "application/json",
-        "Authorization": "Bearer your-token"
-      },
-      "payload": {
-        "message": "Hello from Task Scheduler!",
-        "timestamp": "2025-10-03T10:00:00Z"
-      }
-    }
-  }'
-```
-
-### Create a Recurring Task (Cron)
-
-```bash
-curl -X POST http://localhost:8080/api/v1/tasks \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "Daily Health Check",
-    "trigger": {
-      "type": "cron",
-      "cron": "0 0 9 * * *"
-    },
-    "action": {
-      "method": "GET",
-      "url": "https://api.example.com/health",
-      "headers": {
-        "User-Agent": "TaskScheduler/1.0"
-      }
-    }
-  }'
-```
-
-### List Tasks with Filtering
-
-```bash
-# Get all scheduled tasks
-curl "http://localhost:8080/api/v1/tasks?status=scheduled&page=1&limit=10"
-
-# Get completed tasks
-curl "http://localhost:8080/api/v1/tasks?status=completed"
-```
-
-### View Task Results
-
-```bash
-# Get results for a specific task
-curl "http://localhost:8080/api/v1/tasks/{task-id}/results"
-
-# Get all results with filtering
-curl "http://localhost:8080/api/v1/results?success=true&page=1&limit=10"
 ```
 
 ## Development
@@ -268,7 +315,6 @@ curl "http://localhost:8080/api/v1/results?success=true&page=1&limit=10"
 ├── docs/                      # API documentation
 └── pkg/                       # Public packages
 ```
-
 
 ### Building
 
