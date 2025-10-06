@@ -8,11 +8,8 @@ A RESTful Task Scheduler Service built in Go that manages HTTP tasks with persis
 - ✅ **Flexible Scheduling**: Support for both one-off and cron-based recurring tasks
 - ✅ **Persistent Storage**: PostgreSQL database with automatic migrations
 - ✅ **Execution Tracking**: Detailed logging of every task execution with results
-- ✅ **RESTful API**: Complete REST API with OpenAPI/Swagger documentation
 - ✅ **Docker Support**: Fully containerized with Docker Compose
 - ✅ **Graceful Shutdown**: Proper handling of application lifecycle
-- ✅ **Structured Logging**: Configurable log levels
-- ✅ **Health Check**: Service health monitoring endpoint
 
 ## Quick Start
 
