@@ -1,0 +1,48 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: task-scheduler-postgres
+    environment:
+      POSTGRES_DB: ${DB_NAME:-taskscheduler}
+      POSTGRES_USER: ${DB_USER:-taskscheduler}
+      POSTGRES_PASSWORD: ${DB_PASSWORD-taskscheduler}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "${POSTGRES_EXTERNAL_PORT:-5433}:5432"
+    networks:
+      - task-scheduler-network
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${DB_USER:-taskscheduler} -d ${DB_NAME:-taskscheduler}",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build:
+      context: ..
+      dockerfile: deployments/Dockerfile
+    container_name: task-scheduler-app
+    env_file:
+      - ../.env
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+    ports:
+      - "${SERVER_PORT:-8080}:${SERVER_PORT:-8080}"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - task-scheduler-network
+
+volumes:
+  postgres_data:
+
+networks:
+  task-scheduler-network:
+    driver: bridge
