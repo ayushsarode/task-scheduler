@@ -31,16 +31,23 @@ git clone <your-repo-url>
 cd task-scheduler
 ```
 
-2. Start the services:
+2. Set up PostgreSQL database and update the `.env` file:
+
+```bash
+cp .env.example .env
+# Edit .env with your database configuration
+```
+
+3. Start the services:
 
 ```bash
 cd deployments
 docker-compose up -d
 ```
 
-3. The API will be available at `http://localhost:8080`
+4. The API will be available at `http://localhost:8080`
 
-4. Check service health:
+5. Check service health:
 
 ```bash
 curl http://localhost:8080/health
